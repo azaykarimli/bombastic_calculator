@@ -1,79 +1,90 @@
-import os;
+import os
+import sys
+from multiprocessing import Process, Pipe
+ 
 
-from multiprocessing import Process, current_process
+def calculate(init_result, num1,num2,operator):
+    if operator == "P":
+        result = num1 + num2
+    elif operator == "M":
+        result = num1-num2
+    elif operator == "T":
+        result = num1*num2
+    elif operator == "D":
+        result = num1/num2
+    return result + init_result
 
-# num1 = float(input("Enter First Integer:"))
-# num2 = float(input("Enter Second Integer:"))
-
-try:
+def first(pipe):
+    sys.stdin = open(0)
     num1 = float(input("Enter First Integer:"))
     num2 = float(input("Enter Second Integer:"))
-  
-
-except:
-    ValueError
-    print("Not a valid choice! Try again")
+    print("select operation: \nP - add \nM - substract\nT - multiply\nD - divide")
+    operator = input("Enter operation (P, M, T, D) ").upper()
+    result = calculate(init_result=0, num1=num1,num2=num2, operator=operator)
+    pipe.send(result)
+    pipe.close()
+ 
+def second(pipe):
+    sys.stdin = open(0)
     num1 = float(input("Enter First Integer:"))
-    num2 = float(input("Enter Second Integer:")) 
-    
-   
-   
-print("select operation")
-print("P.Add")
-print("m.substract")
-print("t.Multiply")
-print("d.Divide")
-choise = input("Enter operation(p,m,t,d)") 
-    
+    num2 = float(input("Enter Second Integer:"))
+    print("select operation: \nP - add \nM - substract\nT - multiply\nD - divide")
+    operator = input("Enter operation (P, M, T, D) ").upper()
+    result = calculate(init_result=0, num1=num1,num2=num2, operator=operator)
+    # print(result)
+    pipe.send(result)
+    pipe.close()
     
 
+def third(pipe):
+    sys.stdin = open(0)
+    num1 = float(input("Enter First Integer:"))
+    num2 = float(input("Enter Second Integer:"))
+    print("select operation: \nP - add \nM - substract\nT - multiply\nD - divide")
+    operator = input("Enter operation (P, M, T, D) ").upper()
+    result = calculate(init_result=0, num1=num1,num2=num2, operator=operator)
+    # print(result)
+    pipe.send(result)
+    pipe.close()
 
-def operation():
+def fourth(pipe):
+    sys.stdin = open(0)
+    num1 = float(input("Enter First Integer:"))
+    num2 = float(input("Enter Second Integer:"))
+    print("select operation: \nP - add \nM - substract\nT - multiply\nD - divide")
+    operator = input("Enter operation (P, M, T, D) ").upper()
+    result = calculate(init_result=0, num1=num1,num2=num2, operator=operator)
+    # print(result)
+    pipe.send(result)
+    pipe.close()
+ 
+if __name__ == '__main__':
+    (con1, con2) = Pipe() 
+    first = Process(target = first, name = 'first', args = (con1, ))
+    first.start()
+    result_first = con2.recv()
+    print("first got: %s" % result_first)#Receive message from send
+    con2.close()
 
-   
-    while True:
+ 
+    (parentEnd, childEnd) = Pipe()
+    second = Process(target = second, name = 'second', args = (childEnd,))
+    second.start()
+    result_second = int(parentEnd.recv())+ result_first
+    print('second got:'+str(result_second))
+    childEnd.close()
 
-     
-        if choise in ("p","m","t","d"):
-        
+    (parentEndThird, childEndThird) = Pipe()
+    third = Process(target = third, name = 'third', args = (childEndThird,))
+    third.start()
+    result_third = int(parentEndThird.recv()) + result_second
+    childEndThird.close()
 
-            if choise == "p" :
-                print(num1, "+", num2, "=",  (num1+num2) )
+    (parentEnd4, childEnd4) = Pipe()
+    fourth = Process(target = fourth, name = 'fourth', args = (childEnd4,))
+    fourth.start()
+    result_fourth = int(parentEnd4.recv()) + result_third
+    childEnd4.close()
 
-            elif choise == "m" :
-                print(num1, "-", num2, "=",  (num1-num2) )
-
-            elif choise == "t" :
-                print(num1, "*", num2, "=",  (num1*num2) )
-
-            elif choise == "d" :
-                print(num1, "/", num2, "=",  (num1/num2) )
-
-            
-            process_id_child= os.getpid()
-            print("child process id " + str(process_id_child))
-
-            # process_name = current_process().kill
-            process_name = current_process().name
-            print(process_name)
-
-            break
-
-        else:
-
-            print("invalid input")
-  
-            break
-
-    
-if __name__ == "__main__":
-    proc = Process(target=operation)
-    proc.start()
-    proc.join()
-    process_id_parent= os.getpid()
-    print("Parent id " +str(process_id_parent))
-
-
-
-
+    print("TOTAL: "+str(result_fourth))
 
